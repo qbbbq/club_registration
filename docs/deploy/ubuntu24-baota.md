@@ -244,11 +244,36 @@ pm2 save
 
 本地推送到 `main` 后，GitHub Actions 会 SSH 到服务器执行 `deploy/deploy-bt.sh`，自动完成拉取、构建、数据库迁移和 PM2 重载。
 
+### 14.0 首次启用（引导步骤）
+
+第一次启用时，服务器上还是旧版部署脚本，不会自己 `git pull`，需要先手动更新一次：
+
+1. 本地先推送包含本手册和 `deploy/migrate.sh` 的提交：
+
+   ```bash
+   git push origin main
+   ```
+
+   此时 GitHub Actions 可能因为还没配置 Secrets 而失败，属于正常现象。
+
+2. 登录服务器，手动拉取一次最新代码，确保拿到新的部署脚本：
+
+   ```bash
+   cd /www/wwwroot/club_registration
+   git pull --ff-only origin main
+   ls -l deploy/deploy-bt.sh deploy/migrate.sh
+   ```
+
+3. 继续完成 14.1 和 14.2，然后用 14.3 的 `workflow_dispatch` 触发第一次自动部署。
+
 ### 14.1 服务器生成受限部署密钥
 
 在服务器执行：
 
 ```bash
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+
 ssh-keygen -t ed25519 -C "github-actions-deploy" \
   -f /root/.ssh/github_actions_deploy -N ""
 
@@ -299,6 +324,8 @@ bash deploy/migrate.sh --status
 
 - 执行状态记录在数据库 `schema_migrations` 表中。
 - 全新数据库仍然先执行 `server/src/storage/database/init.sql`；迁移执行器检测不到 `clubs` 表会报错退出。
+- 迁移执行器需要 mysql 客户端。宝塔安装的 MySQL 通常自带 `/www/server/mysql/bin/mysql`；如果都没有，执行 `apt install -y mysql-client`。
+- 数据库用户需要对 `club_registration` 库有 `CREATE` 权限，用于创建 `schema_migrations` 表。
 
 ### 14.5 部署失败与回滚
 
