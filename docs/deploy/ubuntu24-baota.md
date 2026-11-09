@@ -277,10 +277,20 @@ chmod 700 /root/.ssh
 ssh-keygen -t ed25519 -C "github-actions-deploy" \
   -f /root/.ssh/github_actions_deploy -N ""
 
+# 删除旧条目，避免重复或残留行
+sed -i '/github-actions-deploy/d' /root/.ssh/authorized_keys 2>/dev/null || true
+
+# 如果文件末尾没有换行，先补一个换行
+if [ -s /root/.ssh/authorized_keys ] && [ -n "$(tail -c 1 /root/.ssh/authorized_keys)" ]; then
+  echo >> /root/.ssh/authorized_keys
+fi
+
 PUB="$(cat /root/.ssh/github_actions_deploy.pub)"
-echo "restrict,command=\"cd /www/wwwroot/club_registration && bash deploy/deploy-bt.sh\" $PUB" \
+printf 'restrict,command="cd /www/wwwroot/club_registration && bash deploy/deploy-bt.sh" %s\n' "$PUB" \
   >> /root/.ssh/authorized_keys
+
 chmod 600 /root/.ssh/authorized_keys
+ssh-keygen -lf /root/.ssh/github_actions_deploy.pub
 ```
 
 查看私钥内容，稍后填入 GitHub Secret：
@@ -289,7 +299,7 @@ chmod 600 /root/.ssh/authorized_keys
 cat /root/.ssh/github_actions_deploy
 ```
 
-私钥只保存在 GitHub Secrets，不要提交到仓库。
+私钥只保存在 GitHub Secrets，不要提交到仓库。GitHub Actions 运行时会打印部署密钥指纹，必须与上面 `ssh-keygen -lf` 的输出一致。
 
 ### 14.2 配置 GitHub Secrets
 
@@ -301,6 +311,12 @@ GitHub 仓库 → Settings → Secrets and variables → Actions → New reposit
 | `SSH_USER` | `root` |
 | `SSH_PRIVATE_KEY` | 上一步 `cat` 出来的完整私钥 |
 | `SSH_PORT` | SSH 端口，默认 22，可省略 |
+
+注意：
+
+- `SSH_USER` 必须是 `root`，因为密钥在 `/root/.ssh` 下。
+- `SSH_PRIVATE_KEY` 必须是私钥（`cat /root/.ssh/github_actions_deploy`），不是 `.pub`，要包含 `BEGIN` 和 `END` 两行。
+- 如果服务器 SSH 不是 22 端口，必须设置 `SSH_PORT`。
 
 如果宝塔防火墙限制了 SSH 来源 IP，需要放行 GitHub Actions 的出口 IP，否则工作流会连接失败。
 
