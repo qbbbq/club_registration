@@ -1,0 +1,49 @@
+{
+  "name": "club-registration",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"corepack pnpm run dev:server\" \"corepack pnpm run dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "npx tsx watch server/index.ts",
+    "test": "vitest run",
+    "build": "vue-tsc -b && vite build",
+    "build:server": "tsc -p server/tsconfig.json && node -e \"require('fs').writeFileSync('dist-server/package.json', JSON.stringify({ type: 'commonjs' }))\"",
+    "preview": "vite preview",
+    "start": "npx tsx server/index.ts",
+    "deploy:build": "corepack pnpm install && corepack pnpm run build && corepack pnpm run build:server"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "axios": "^1.13.6",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "drizzle-orm": "^0.45.1",
+    "element-plus": "^2.13.5",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "mysql2": "^3.15.3",
+    "qrcode": "^1.5.4",
+    "tsx": "^4.21.0",
+    "vue": "^3.5.30",
+    "vue-router": "^5.0.3",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^24.12.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/supertest": "^6.0.3",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vue/tsconfig": "^0.9.0",
+    "concurrently": "^9.2.1",
+    "supertest": "^7.1.4",
+    "typescript": "~5.9.3",
+    "vite": "^8.0.0",
+    "vitest": "^4.0.15",
+    "vue-tsc": "^3.2.5"
+  }
+}

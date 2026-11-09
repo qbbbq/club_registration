@@ -1,0 +1,47 @@
+CREATE DATABASE IF NOT EXISTS club_registration
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE club_registration;
+
+CREATE TABLE IF NOT EXISTS clubs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  grade VARCHAR(20),
+  description TEXT,
+  total_quota INT NOT NULL DEFAULT 50,
+  remaining_quota INT NOT NULL DEFAULT 50,
+  manager VARCHAR(50),
+  manager_contact VARCHAR(100),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX clubs_name_idx (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS students (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  id_card VARCHAR(18) NOT NULL UNIQUE,
+  class_name VARCHAR(100) NOT NULL,
+  grade VARCHAR(10),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX students_name_idx (name),
+  INDEX students_id_card_idx (id_card)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS registrations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  id_card_hash CHAR(64) NOT NULL UNIQUE,
+  class_name VARCHAR(100) NOT NULL,
+  club_id INT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX registrations_club_id_idx (club_id),
+  CONSTRAINT registrations_club_fk FOREIGN KEY (club_id) REFERENCES clubs(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS settings (
+  `key`   VARCHAR(100) PRIMARY KEY,
+  `value` TEXT,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
