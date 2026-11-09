@@ -10,4 +10,8 @@ describe('admin system settings', () => {
     expect(adminSource).toContain('maxlength="30"');
     expect(adminSource).toContain('handleSaveRegistrationTitle');
   });
+
+  it('labels the registration title card as 报名入口标题栏', () => {
+    expect(adminSource).toContain('<span>报名入口标题栏</span>');
+  });
 });

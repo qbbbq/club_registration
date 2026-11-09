@@ -1061,7 +1061,7 @@ onUnmounted(() => {
         <el-card>
           <template #header>
             <div class="card-header">
-              <span>报名入口标题</span>
+              <span>报名入口标题栏</span>
             </div>
           </template>
           <el-form label-width="120px" @submit.prevent>
