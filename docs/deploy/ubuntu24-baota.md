@@ -188,13 +188,20 @@ curl -I https://club.whysss.cn/assets/<上一步输出的文件名>
 
 ## 11. 日常更新
 
+推荐直接推送，GitHub Actions 会自动部署：
+
+```bash
+git push origin main
+```
+
+手动部署兜底（脚本会拉取 `origin/main`、构建、迁移并重载）：
+
 ```bash
 cd /www/wwwroot/club_registration
-git pull
 bash deploy/deploy-bt.sh
 ```
 
-脚本会检查 Node 版本、安装依赖、构建前后端、重载或启动 PM2，并调用 `/health` 做健康检查。
+自动部署的首次配置见第 14 节。
 
 ## 12. 常见问题
 
@@ -210,11 +217,99 @@ bash deploy/deploy-bt.sh
 
 ## 13. 回滚
 
+自动部署失败时，`deploy/deploy-bt.sh` 会自动回滚运行中的代码。
+
+人工回滚推荐用 `git revert` 产生一个新提交，让自动部署重新发布：
+
+```bash
+git revert <有问题的提交>
+git push origin main
+```
+
+如果需要在服务器上临时还原运行版本（不改变 git 历史）：
+
 ```bash
 cd /www/wwwroot/club_registration
 git log --oneline -5
-git checkout <上一个可用提交>
-bash deploy/deploy-bt.sh
+git checkout --force <上一个可用提交>
+corepack pnpm run build
+corepack pnpm run build:server
+pm2 startOrReload ecosystem.config.cjs --update-env
+pm2 save
 ```
 
-回滚后执行 `git switch main` 回到最新代码。
+注意：下一次自动部署会重新切回 `main` 并发布最新提交。
+
+## 14. 自动部署（GitHub Actions）
+
+本地推送到 `main` 后，GitHub Actions 会 SSH 到服务器执行 `deploy/deploy-bt.sh`，自动完成拉取、构建、数据库迁移和 PM2 重载。
+
+### 14.1 服务器生成受限部署密钥
+
+在服务器执行：
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-deploy" \
+  -f /root/.ssh/github_actions_deploy -N ""
+
+PUB="$(cat /root/.ssh/github_actions_deploy.pub)"
+echo "restrict,command=\"cd /www/wwwroot/club_registration && bash deploy/deploy-bt.sh\" $PUB" \
+  >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+```
+
+查看私钥内容，稍后填入 GitHub Secret：
+
+```bash
+cat /root/.ssh/github_actions_deploy
+```
+
+私钥只保存在 GitHub Secrets，不要提交到仓库。
+
+### 14.2 配置 GitHub Secrets
+
+GitHub 仓库 → Settings → Secrets and variables → Actions → New repository secret：
+
+| Secret | 值 |
+| --- | --- |
+| `SSH_HOST` | 服务器 IP 或域名 |
+| `SSH_USER` | `root` |
+| `SSH_PRIVATE_KEY` | 上一步 `cat` 出来的完整私钥 |
+| `SSH_PORT` | SSH 端口，默认 22，可省略 |
+
+如果宝塔防火墙限制了 SSH 来源 IP，需要放行 GitHub Actions 的出口 IP，否则工作流会连接失败。
+
+### 14.3 触发部署
+
+- 本地 `git push origin main` 自动触发。
+- 也可以在 GitHub → Actions → Deploy → Run workflow 手动触发。
+- 查看 Actions 日志和服务器 `/www/wwwroot/club_registration/logs/deploy.log`。
+
+### 14.4 数据库迁移规范
+
+- 新迁移放在 `server/src/storage/database/migrations/`，文件名 `YYYY-MM-DD-描述.sql`。
+- 已执行过的迁移不要修改，新增变更写新文件。
+- 迁移必须幂等、向前兼容，优先加列/加表/加索引；删列和改语义分两次发布。
+- 查看迁移状态：
+
+```bash
+cd /www/wwwroot/club_registration
+bash deploy/migrate.sh --status
+```
+
+- 执行状态记录在数据库 `schema_migrations` 表中。
+- 全新数据库仍然先执行 `server/src/storage/database/init.sql`；迁移执行器检测不到 `clubs` 表会报错退出。
+
+### 14.5 部署失败与回滚
+
+- `git pull` 失败：旧应用继续运行，不重载。
+- 构建、迁移、PM2 重载或健康检查失败：自动回滚到上一个提交并重新构建、重载。
+- 数据库迁移不会自动回滚，需要新增迁移修复。
+- 服务器日志：
+
+```bash
+tail -n 200 /www/wwwroot/club_registration/logs/deploy.log
+pm2 logs club-registration --lines 100
+```
+
+- 人工回滚见第 13 节。

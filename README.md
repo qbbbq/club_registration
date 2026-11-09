@@ -119,6 +119,12 @@ pm2 startup
 
 配置文件 `ecosystem.config.cjs` 已内置 4 进程、每进程 40 个 MySQL 连接（共 160，低于 `max_connections=500`）、1G 内存重启阈值、日志输出和自动重启。
 
+## 自动部署（GitHub Actions）
+
+推送到 `main` 后，GitHub Actions 通过受限 SSH 密钥触发服务器部署，自动完成拉取、构建、数据库迁移和 PM2 重载，健康检查失败时自动回滚代码。
+
+首次配置见 `docs/deploy/ubuntu24-baota.md` 第 14 节。
+
 ## 宝塔面板 Nginx 配置
 
 宝塔面板默认把全部请求反代给 Node，静态页面也由 Node 输出，会浪费 Node 单核性能。建议使用 `deploy/bt-nginx-site.conf` 的配置：
