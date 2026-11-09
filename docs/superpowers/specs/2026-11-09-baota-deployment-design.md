@@ -19,7 +19,7 @@
 
 ```text
 用户浏览器 ──HTTPS(443)──> 宝塔 Nginx (club.whysss.cn)
-                              ├── /assets/*  ──> /www/wwwroot/club-registration/dist
+                              ├── /assets/*  ──> /www/wwwroot/club_registration/dist
                               ├── /*         ──> dist/index.html（SPA 回退）
                               └── /api/*、/health ──> 127.0.0.1:3001
                                                         │
@@ -33,11 +33,11 @@
 
 | 路径 | 说明 |
 | --- | --- |
-| `/www/wwwroot/club-registration` | git 仓库根目录 |
-| `/www/wwwroot/club-registration/.env` | 手工创建，被 `.gitignore` 忽略，不入库 |
-| `/www/wwwroot/club-registration/dist` | 前端构建产物，Nginx 站点根目录 |
-| `/www/wwwroot/club-registration/dist-server` | 后端编译产物 |
-| `/www/wwwroot/club-registration/logs` | PM2 日志目录，启动前创建 |
+| `/www/wwwroot/club_registration` | git 仓库根目录 |
+| `/www/wwwroot/club_registration/.env` | 手工创建，被 `.gitignore` 忽略，不入库 |
+| `/www/wwwroot/club_registration/dist` | 前端构建产物，Nginx 站点根目录 |
+| `/www/wwwroot/club_registration/dist-server` | 后端编译产物 |
+| `/www/wwwroot/club_registration/logs` | PM2 日志目录，启动前创建 |
 
 ## 运行参数
 
@@ -113,7 +113,7 @@ pm2 startup
 将 `deploy/bt-nginx-site.conf` 内容粘贴到宝塔站点的配置文件，按服务器实际路径修改：
 
 - `server_name` 保持 `club.whysss.cn`。
-- `root` 指向 `/www/wwwroot/club-registration/dist`。
+- `root` 指向 `/www/wwwroot/club_registration/dist`。
 - `ssl_certificate` 和 `ssl_certificate_key` 使用宝塔实际生成的证书路径。
 
 然后检查并重载：
@@ -136,7 +136,7 @@ nginx -s reload
 ## 日常更新流程
 
 ```bash
-cd /www/wwwroot/club-registration
+cd /www/wwwroot/club_registration
 git pull
 corepack pnpm install
 corepack pnpm run deploy:build

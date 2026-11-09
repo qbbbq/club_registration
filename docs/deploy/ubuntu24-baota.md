@@ -72,7 +72,7 @@ git log --oneline -1
 ## 4. 创建 .env
 
 ```bash
-cd /www/wwwroot/club-registration
+cd /www/wwwroot/club_registration
 cp deploy/env.production.example .env
 vi .env
 chmod 600 .env
@@ -83,7 +83,7 @@ chmod 600 .env
 ## 5. 安装依赖并构建
 
 ```bash
-cd /www/wwwroot/club-registration
+cd /www/wwwroot/club_registration
 mkdir -p logs
 corepack pnpm install
 corepack pnpm run deploy:build
@@ -96,7 +96,7 @@ ls -l dist/index.html dist-server/index.js
 
 1. 宝塔 → 网站 → 添加站点。
 2. 域名填 `club.whysss.cn`。
-3. 根目录填 `/www/wwwroot/club-registration/dist`。
+3. 根目录填 `/www/wwwroot/club_registration/dist`。
 4. PHP 版本选「纯静态」，不创建 FTP 和数据库。
 5. 提交。
 
@@ -118,7 +118,7 @@ ls -l dist/index.html dist-server/index.js
 ## 8. 启动 PM2
 
 ```bash
-cd /www/wwwroot/club-registration
+cd /www/wwwroot/club_registration
 pm2 start ecosystem.config.cjs
 pm2 save
 pm2 startup
@@ -142,7 +142,7 @@ curl http://127.0.0.1:3001/health
 3. 用项目里的 `deploy/bt-nginx-site.conf` 全文替换。
 4. 核对三处：
    - `server_name` 为 `club.whysss.cn`。
-   - `root` 为 `/www/wwwroot/club-registration/dist`。
+   - `root` 为 `/www/wwwroot/club_registration/dist`。
    - `ssl_certificate` 和 `ssl_certificate_key` 为第 7 步的实际路径。
 5. 保存。
 
@@ -177,7 +177,7 @@ curl https://club.whysss.cn/api/stats
 再验证静态资源缓存：
 
 ```bash
-cd /www/wwwroot/club-registration
+cd /www/wwwroot/club_registration
 ls dist/assets | head -n 1
 curl -I https://club.whysss.cn/assets/<上一步输出的文件名>
 ```
@@ -189,7 +189,7 @@ curl -I https://club.whysss.cn/assets/<上一步输出的文件名>
 ## 11. 日常更新
 
 ```bash
-cd /www/wwwroot/club-registration
+cd /www/wwwroot/club_registration
 git pull
 bash deploy/deploy-bt.sh
 ```
@@ -211,7 +211,7 @@ bash deploy/deploy-bt.sh
 ## 13. 回滚
 
 ```bash
-cd /www/wwwroot/club-registration
+cd /www/wwwroot/club_registration
 git log --oneline -5
 git checkout <上一个可用提交>
 bash deploy/deploy-bt.sh
