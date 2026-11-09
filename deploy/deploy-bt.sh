@@ -66,10 +66,22 @@ health_check() {
 build_all() {
   echo "==> 安装依赖"
   "${PNPM[@]}" install
+
+  # 旧版本 Vite 的 emptyOutDir 会尝试删除宝塔的 dist/.user.ini。
+  # 构建期间临时去掉不可变属性；新的构建脚本会保留该文件。
+  if [ -f dist/.user.ini ]; then
+    chattr -i dist/.user.ini 2>/dev/null || true
+  fi
+
   echo "==> 构建前端"
   "${PNPM[@]}" run build
   echo "==> 构建后端"
   "${PNPM[@]}" run build:server
+
+  if [ -f dist/.user.ini ]; then
+    chattr +i dist/.user.ini 2>/dev/null || true
+  fi
+
   if [ ! -f dist/index.html ] || [ ! -f dist-server/index.js ]; then
     echo "错误：构建产物缺失（dist/index.html 或 dist-server/index.js）。" >&2
     return 1

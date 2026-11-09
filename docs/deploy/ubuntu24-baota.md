@@ -209,6 +209,7 @@ bash deploy/deploy-bt.sh
 | --- | --- |
 | 502 Bad Gateway | `pm2 status`、`pm2 logs club-registration`、`curl http://127.0.0.1:3001/health` |
 | 构建报 Node 版本错误 | 在宝塔 Node 版本管理器中切换 Node 24 后重试 |
+| 构建报 `EPERM ... dist/.user.ini` | 宝塔防跨站文件带不可变属性。新版构建脚本已改为保留该文件；临时处理：`chattr -i dist/.user.ini` 后重试 |
 | 数据库连接失败 | 检查 3306 连通、账号密码、远程授权 IP，以及远程 `max_connections` 大于 160 |
 | `nginx -t` 证书报错 | 使用宝塔 SSL 页面显示的实际证书路径 |
 | 页面 404 或仍是旧页面 | 检查 `root` 是否指向 `dist`，重新构建并 `nginx -s reload` |
